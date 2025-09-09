@@ -1,0 +1,553 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="ja"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;シアトル研修旅行 インタラクティブ日程表&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Chosen Palette: Calm Horizon --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Application Structure Plan: The application is structured as a single-page dashboard with a sticky top navigation for easy jumps to each day. Daily agendas are presented in detailed, expandable cards. This structure provides quick, non-linear access to information, which is ideal for users needing to check a specific day's plan. A high-level overview with key stats and a donut chart visually summarizes the trip's focus, providing an immediate understanding of the schedule's balance between professional, cultural, and personal time. The new, highly granular transportation details for Days 5 and 6 are incorporated directly into their respective timelines to provide a clear, step-by-step guide. --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Visualization &amp; Content Choices: 1. Trip Summary: Report Info -&gt; Key metrics (duration, company visits). Goal -&gt; Inform. Presentation -&gt; Key stat cards (HTML/Tailwind). Interaction -&gt; None. Justification -&gt; Provides an immediate, high-level overview. 2. Daily Itinerary: Report Info -&gt; Highly detailed daily schedule including transportation. Goal -&gt; Organize. Presentation -&gt; Vertical timeline within daily cards, with icons for activity types. Interaction -&gt; Navigation buttons scroll to the relevant day. A "current day" highlight is applied via JS. Justification -&gt; Offers a clear, chronological presentation with easy navigation and context, especially useful for the complex travel days. 3. Activity Breakdown: Report Info -&gt; Types of activities and their durations. Goal -&gt; Analyze. Viz -&gt; Donut Chart (Chart.js/Canvas). Interaction -&gt; Hover tooltips show activity and hours. Justification -&gt; Visually communicates the trip's thematic balance, which is now more granular with new data. --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', 'Noto Sans JP', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #f8f7f4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #3d3d3d;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.timeline-item::before {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>content: '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>left: -21px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>top: 12px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>width: 10px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>height: 10px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 50%;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #a8b3cfa;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid #ffffff;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.current-day {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 2px solid #3b82f6;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 10px 15px -3px rgb(59 130 246 / 0.2), 0 4px 6px -4px rgb(59 130 246 / 0.2);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.chart-container {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>width: 100%;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>max-width: 400px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-left: auto;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-right: auto;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>height: 350px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>max-height: 400px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="antialiased"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="container mx-auto px-4 py-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h1 class="text-2xl md:text-3xl font-bold text-gray-800 text-center"&gt;シアトル研修旅行&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;nav class="mt-3"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;ul class="flex flex-wrap justify-center gap-2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="1" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;1日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="2" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;2日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="3" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;3日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="4" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;4日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="5" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;5日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="6" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;6日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="7" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;7日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;li&gt;&lt;button data-day="8" class="nav-btn px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full hover:bg-blue-500 hover:text-white transition-colors"&gt;8日目&lt;/button&gt;&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/nav&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/header&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;main class="container mx-auto p-4 md:p-8"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;section id="overview" class="mb-12"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 class="text-2xl font-bold text-center mb-6 text-gray-700"&gt;研修概要&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-white p-6 rounded-xl shadow-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="font-bold text-lg mb-3 text-gray-800"&gt;旅行のハイライト&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div class="grid grid-cols-2 gap-4 text-center"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="bg-blue-50 p-4 rounded-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="text-3xl font-bold text-blue-600"&gt;8&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="text-sm text-gray-600"&gt;日間&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="bg-green-50 p-4 rounded-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="text-3xl font-bold text-green-600"&gt;5+&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="text-sm text-gray-600"&gt;企業/機関訪問&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-600 mt-4"&gt;このアプリケーションは、シアトルでの研修旅行の日程を分かりやすくまとめたものです。上のナビゲーションボタンで各日の予定にジャンプできます。旅行の概要と活動の内訳を視覚的に把握し、充実した研修にしましょう。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="bg-white p-6 rounded-xl shadow-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="font-bold text-lg mb-3 text-center text-gray-800"&gt;活動時間の内訳&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="chart-container"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;canvas id="activityChart"&gt;&lt;/canvas&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;section id="itinerary"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 class="text-2xl font-bold text-center mb-8 text-gray-700"&gt;詳細日程&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="space-y-8"&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-1" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;1日目：10/9 (木) - シアトルへ移動&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;日本からシアトルへ向かい、ホストファミリーと対面します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;✈️ 18:30 JST - 羽田空港集合&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;各自、羽田空港に集合します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;✈️ 21:15 JST - シアトルへ出発&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;全日空NH118便にてシアトル・タコマ国際空港へ出発（所要時間：約9時間10分）。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🛬 14:25 PST - シアトル到着&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;空港到着後、入国手続きを済ませ、出口でMasa氏と合流し、プログラムの確認を行います。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🏠 ホームステイ先へ&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;それぞれのホストファミリーと合流し、ホームステイ先へ向かいます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-2" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;2日目：10/10 (金) - 市内散策と企業訪問①&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;シアトルの活気ある市場を見学し、世界的なIT企業を訪問します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;🏞️ 10:00 - Pike Place Market 集合 &lt;button data-place="パイク・プレイス・マーケット" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;West Lake Stationに公共交通機関で集合し、マーケットの概要説明を受けます。 &lt;a href="https://maps.app.goo.gl/FZjioYn6hdtK54Ss9" target="_blank" class="text-blue-500 hover:underline"&gt;集合場所&lt;/a&gt; / &lt;a href="https://www.pikeplacemarket.org/about-pike-place-market/" target="_blank" class="text-blue-500 hover:underline"&gt;公式サイト&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚶 10:30-12:30 - 自由散策と昼食&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;マーケット内を自由に散策し、各自で昼食をとります。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚶 12:30 - Pike Place Fish Market 集合&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;指定されたFish Marketに集合します。 &lt;a href="https://maps.app.goo.gl/T46T6BLcFSAsTMXW8" target="_blank" class="text-blue-500 hover:underline"&gt;集合場所&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;💼 13:00-15:30 - Amazon 訪問 &lt;button data-place="アマゾン本社" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;企業案内と説明を受けます。 &lt;a href="https://www.aboutamazon.com/about-us" target="_blank" class="text-blue-500 hover:underline"&gt;公式サイト&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;🔬 16:00-17:30 - Allen Institute 訪問 &lt;button data-place="アレン・インスティテュート" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;企業案内と説明を受けます。 &lt;a href="https://alleninstitute.org/" target="_blank" class="text-blue-500 hover:underline"&gt;公式サイト&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🏠 17:30 - 帰宅&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーの迎えで帰宅します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-3" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;3日目：10/11 (土) - 研究とワークショップ&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;最先端のがん研究センターを訪れ、午後はワークショップに参加します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;🔬 09:00-10:00 - Fred Hutchinson Cancer Center 訪問 &lt;button data-place="フレッド・ハッチンソンがん研究センター" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーの送迎でFred Hutchinson Cancer Centerに集合。企業案内と説明を受けます。 &lt;a href="https://maps.app.goo.gl/3k6cbZF719GxDEMP7" target="_blank" class="text-blue-500 hover:underline"&gt;集合場所&lt;/a&gt; / &lt;a href="https://www.fredhutch.org/en.html" target="_blank" class="text-blue-500 hover:underline"&gt;公式サイト&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🤝 10:00-12:00 - 研究会×SIJP&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;研究者の方（大橋拓朗氏）と交流し、生徒と研究者による発表会を行います。 &lt;a href="https://researchmap.jp/ohashitakuro" target="_blank" class="text-blue-500 hover:underline"&gt;大橋氏プロフィール&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🍽️ 12:00-13:00 - ランチ&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;💻 13:00-17:00 - Microsoft ワークショップ &lt;button data-place="マイクロソフト" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;フレッドハッチンソンがん研究センターにて、マイクロソフト社員によるワークショップに参加します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🏠 17:00 - 帰宅&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーの迎えで帰宅します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-4" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;4日目：10/12 (日) - ホストファミリーデー&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;終日、ホストファミリーと過ごし、アメリカの文化に触れます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🏠 終日&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーとの自由時間です。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-5" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;5日目：10/13 (月) - 航空宇宙産業と市内散策&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;世界最大の航空機メーカーの工場を見学し、シアトルの中心街を散策します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚌 08:09 - Lynwood City Center 集合&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーの送迎で集合。その後、ダウンタウンへ向かいます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;✈️ 10:00-12:30 - ボーイング工場見学 &lt;button data-place="ボーイング工場" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;巨大な航空機の組み立てラインを見学します。 &lt;a href="https://www.boeing.com/" target="_blank" class="text-blue-500 hover:underline"&gt;公式サイト&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                             </span>&lt;p class="font-semibold text-gray-700"&gt;🍽️ 13:00-13:50 - ランチ＆フェアウェルパーティー&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                             </span>&lt;p class="text-sm text-gray-600"&gt;実施は確認中です。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                         </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚌 13:52-15:23 - ダウンタウンへ移動&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;徒歩とバスを乗り継ぎ、ウェストレイク駅へ向かいます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                         </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚶 15:30-17:30 - Seattle Downtown 散策&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;シアトルのダウンタウンを自由に散策します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div class="mt-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;details class="mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;summary class="font-bold text-lg text-gray-800 cursor-pointer p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>交通ガイド (詳細)</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/summary&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="p-4 bg-gray-50 rounded-b-lg border border-t-0 border-gray-200"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;ul class="list-disc list-inside space-y-2 text-sm text-gray-700"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;08:20 - 09:11: [103]バスにてLynwood City Centerから84th St SW &amp; 44th Ave Wまで移動 (51分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;09:11 - 09:17: 徒歩で移動 (6分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;13:52 - 14:06: 徒歩で移動 (14分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;14:06 - 14:39: [117]バスにてHwy 525 &amp; 84th St SWからLynwood City Center Stationまで移動 (33分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;14:53 - 15:23: [1]LineにてLynwood City Center StationからWestlake Stationまで移動 (30分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/details&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-6" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;6日目：10/14 (火) - 企業訪問②&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;世界をリードするテクノロジー企業、GoogleとMicrosoftを連続で訪問します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;📚 09:00-10:30 - University of Washington 案内 &lt;button data-place="ワシントン大学" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;U District Stationに集合後、ワシントン大学の案内とブックストアでの買い物を楽しみます。 &lt;a href="https://www.washington.edu/" target="_blank" class="text-blue-500 hover:underline"&gt;公式サイト&lt;/a&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚌 10:30-11:21 - Google Kirklandへ移動&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;バスと徒歩で移動します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;💼 11:30-14:00 - Google (Kirkland) 訪問 &lt;button data-place="Google Kirkland" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;企業見学、説明、そしてランチを楽しみます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🚶 14:00-14:47 - Microsoftへ移動&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;バスと徒歩で移動します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700 flex items-center gap-2"&gt;💼 15:00-16:30 - Microsoft 訪問 &lt;button data-place="マイクロソフト" class="fact-btn text-blue-500 hover:text-blue-700 focus:outline-none"&gt;✨&lt;/button&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;企業見学と説明を受けます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🏠 17:00 - 帰宅&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーの迎えで帰宅します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div class="mt-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;details class="mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;summary class="font-bold text-lg text-gray-800 cursor-pointer p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>交通ガイド (詳細)</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/summary&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;div class="p-4 bg-gray-50 rounded-b-lg border border-t-0 border-gray-200"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;ul class="list-disc list-inside space-y-2 text-sm text-gray-700"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;10:30 - 10:48: 徒歩でバス停まで移動 (18分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;10:48 - 11:15: [255]バスにてKirkland Transit Centerまで移動 (27分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;11:15 - 11:21: 徒歩でGoogle Kirklandまで移動 (6分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;14:00 - 14:15: 徒歩でKirkland Transit Centerまで移動 (15分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;14:15 - 14:35: [245]バスにて156th Ave NE &amp; NE 33rd Stまで移動 (20分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>&lt;li&gt;14:35 - 14:47: 徒歩でMicrosoft Visitor Centerまで移動 (12分)&lt;/li&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/ul&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/details&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-7" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;7日目：10/15 (水) - 帰国&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;シアトルでの研修を終え、日本へ向けて出発します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🛫 12:00 - 空港集合&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;ホストファミリーの送迎でシアトル・タコマ国際空港へ向かい、ANAの搭乗手続き前で集合します。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative mb-6"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🍽️ 12:00-14:00 - 最終確認・ランチ&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;Masaとともに最終確認と昼食を済ませます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;✈️ 16:30 PST - 羽田へ出発&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;全日空NH117便にて帰国の途へ。所要時間は約10時間30分です。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;article id="day-8" class="day-card bg-white p-6 rounded-xl shadow-md transition-all duration-300"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;h3 class="text-xl font-bold mb-1 text-gray-800"&gt;8日目：10/16 (木) - 羽田空港到着&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p class="text-sm text-gray-500 mb-4"&gt;日本に帰国し、解散となります。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="border-l-2 border-gray-200 pl-6 relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="timeline-item relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="font-semibold text-gray-700"&gt;🛬 19:00 JST - 羽田空港到着&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;p class="text-sm text-gray-600"&gt;通関手続き後、解散となります。お疲れ様でした！&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/article&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div id="fact-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-50"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="bg-white rounded-lg p-6 shadow-xl max-w-lg w-full relative"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button id="close-modal-btn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold"&gt;×&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;h4 id="modal-title" class="text-xl font-bold mb-4 text-gray-800"&gt;&lt;/h4&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div id="modal-content" class="text-gray-700 text-base"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;section id="gemini-tools" class="my-12 p-6 bg-white rounded-xl shadow-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2 class="text-2xl font-bold text-center mb-6 text-gray-700"&gt;✨ お役立ちツール ✨&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="p-4 bg-gray-50 rounded-lg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;h3 class="font-bold text-lg mb-2 text-gray-800"&gt;おしゃべりガイド&lt;/h3&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;p class="text-sm text-gray-600 mb-4"&gt;日本語を入力すると、Geminiがネイティブが使う自然な英語のフレーズを提案してくれます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="flex flex-col md:flex-row gap-4"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;input type="text" id="japanese-input" placeholder="日本語を入力してください..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button id="translate-btn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors"&gt;✨ 翻訳する&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div id="translation-output" class="mt-4 p-4 border border-gray-300 rounded-lg min-h-[5rem] bg-white text-gray-800"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;p id="translation-text" class="text-gray-600"&gt;ここに翻訳が表示されます。&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/main&gt;</p>
+<p class="p2"><span class="Apple-converted-space">    </span></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;footer class="text-center py-6 mt-8 bg-white border-t"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;p class="text-sm text-gray-500"&gt;Have a safe and wonderful trip!&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/footer&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.addEventListener('DOMContentLoaded', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const navButtons = document.querySelectorAll('.nav-btn');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>navButtons.forEach(button =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>button.addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const day = button.getAttribute('data-day');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const targetElement = document.getElementById(`day-${day}`);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (targetElement) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const headerOffset = 80;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const elementPosition = targetElement.getBoundingClientRect().top;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const offsetPosition = elementPosition + window.pageYOffset - headerOffset;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>window.scrollTo({</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>top: offsetPosition,</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>behavior: 'smooth'</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>});</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const today = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const tripStartDate = new Date('2025-10-09T00:00:00');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const tripEndDate = new Date('2025-10-16T23:59:59');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (today &lt; tripStartDate) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('day-1').classList.add('current-day');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else if (today &gt; tripEndDate) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('day-8').classList.add('current-day');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const diffTime = Math.abs(today - tripStartDate);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const currentDayId = `day-${diffDays}`;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const currentDayElement = document.getElementById(currentDayId);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (currentDayElement) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>currentDayElement.classList.add('current-day');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const ctx = document.getElementById('activityChart').getContext('2d');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const activityData = {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>labels: ['企業/研究機関訪問', '移動', '文化/市内散策'],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>datasets: [{</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>label: '活動時間 (概算)',</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>data: [18, 4.9, 4.5],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>backgroundColor: [</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>'rgba(59, 130, 246, 0.7)',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>'rgba(239, 68, 68, 0.7)',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>'rgba(16, 185, 129, 0.7)'</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>borderColor: [</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>'rgba(59, 130, 246, 1)',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>'rgba(239, 68, 68, 1)',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>'rgba(16, 185, 129, 1)'</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>borderWidth: 1,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>hoverOffset: 4</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>new Chart(ctx, {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>type: 'doughnut',</p>
+<p class="p1"><span class="Apple-converted-space">                </span>data: activityData,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>options: {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>responsive: true,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>maintainAspectRatio: false,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>plugins: {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>legend: {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>position: 'bottom',</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>labels: {</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>padding: 15,</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>font: {</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>size: 12</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>tooltip: {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>callbacks: {</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>label: function(context) {</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>let label = context.label || '';</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>if (label) {</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>label += ': ';</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>if (context.parsed !== null) {</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>label += context.parsed + ' 時間';</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>return label;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const factButtons = document.querySelectorAll('.fact-btn');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const factModal = document.getElementById('fact-modal');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const modalTitle = document.getElementById('modal-title');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const modalContent = document.getElementById('modal-content');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const closeModalBtn = document.getElementById('close-modal-btn');</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>factButtons.forEach(button =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>button.addEventListener('click', async () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const place = button.getAttribute('data-place');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>modalTitle.textContent = `${place}の豆知識`;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>modalContent.innerHTML = `&lt;p class="animate-pulse text-center text-gray-500"&gt;情報を読み込み中...&lt;/p&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>factModal.classList.remove('hidden');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const prompt = `シアトルの${place}に関する、高校生向けの興味深い事実や豆知識を1つ、簡潔に教えてください。`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const payload = {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>contents: [{ parts: [{ text: prompt }] }],</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>tools: [{ "google_search": {} }],</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>systemInstruction: { parts: [{ text: "Act as a knowledgeable tour guide for Japanese high school students. Provide a single, concise, and engaging fact." }] }</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>};</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const apiKey = "";</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const response = await fetch(apiUrl, {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>method: 'POST',</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>headers: { 'Content-Type': 'application/json' },</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>body: JSON.stringify(payload)</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (!response.ok) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>throw new Error('API呼び出しに失敗しました。');</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const result = await response.json();</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>if (text) {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>modalContent.textContent = text;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>modalContent.textContent = '情報が見つかりませんでした。';</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} catch (error) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>modalContent.textContent = '情報の取得中にエラーが発生しました。';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>closeModalBtn.addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>factModal.classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>const translateBtn = document.getElementById('translate-btn');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const japaneseInput = document.getElementById('japanese-input');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const translationOutput = document.getElementById('translation-output');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const translationText = document.getElementById('translation-text');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>translateBtn.addEventListener('click', async () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const japanesePhrase = japaneseInput.value.trim();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (japanesePhrase === '') {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>translationText.textContent = '日本語を入力してください。';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>translationText.innerHTML = `&lt;p class="animate-pulse text-center text-gray-500"&gt;翻訳中...&lt;/p&gt;`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>const prompt = `以下の日本語のフレーズを、ネイティブが使う自然な英語に翻訳し、簡単な発音のヒントも加えてください。</p>
+<p class="p1">例：'こんにちは' -&gt; 'Hello there!' (ハロー・ゼア！)</p>
+<p class="p1">フレーズ: '${japanesePhrase}'`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const payload = {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>contents: [{ parts: [{ text: prompt }] }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>systemInstruction: { parts: [{ text: "You are a friendly language tutor. Provide a natural-sounding English translation for a Japanese phrase, followed by a simple katakana-based pronunciation guide in parentheses. The response should be concise and focused on the translation." }] }</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>};</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const apiKey = "";</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const response = await fetch(apiUrl, {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>method: 'POST',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>headers: { 'Content-Type': 'application/json' },</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>body: JSON.stringify(payload)</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (!response.ok) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>throw new Error('API呼び出しに失敗しました。');</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const result = await response.json();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (text) {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>translationText.textContent = text;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>translationText.textContent = '翻訳が見つかりませんでした。';</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>} catch (error) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>translationText.textContent = '翻訳中にエラーが発生しました。';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
